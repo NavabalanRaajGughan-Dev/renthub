@@ -1,0 +1,355 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  emailVerified   Boolean   @default(false)
+  image           String?
+  password        String?
+  phone           String?
+  bio             String?   @db.Text
+  location        String?
+  latitude        Float?
+  longitude       Float?
+  isVerified      Boolean   @default(false)
+  idDocumentUrl   String?
+  stripeAccountId String?
+  avgRating       Float     @default(0)
+  totalReviews    Int       @default(0)
+  responseRate    Float     @default(100)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  items             Item[]
+  bookingsAsRenter  Booking[]  @relation("RenterBookings")
+  bookingsAsOwner   Booking[]  @relation("OwnerBookings")
+  reviewsGiven      Review[]   @relation("ReviewAuthor")
+  reviewsReceived   Review[]   @relation("ReviewTarget")
+  sentMessages      Message[]  @relation("MessageSender")
+  notifications     Notification[]
+  sessions          Session[]
+  accounts          Account[]
+  damageReports     DamageReport[]
+  conversations     ConversationParticipant[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verifications")
+}
+
+model Item {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  description     String    @db.Text
+  category        Category
+  condition       Condition
+  pricePerDay     Float
+  pricePerWeek    Float?
+  pricePerMonth   Float?
+  securityDeposit Float
+  location        String
+  latitude        Float
+  longitude       Float
+  images          String[]
+  rules           String?   @db.Text
+  minRentalDays   Int       @default(1)
+  maxRentalDays   Int       @default(90)
+  bufferDays      Int       @default(0)
+  isActive        Boolean   @default(true)
+  isFeatured      Boolean   @default(false)
+  viewCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  ownerId       String
+  owner         User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  reviews       Review[]
+  availability  Availability[]
+  damageReports DamageReport[]
+
+  @@index([category])
+  @@index([ownerId])
+  @@index([pricePerDay])
+  @@index([isActive, isFeatured])
+  @@index([createdAt])
+  @@map("items")
+}
+
+enum Category {
+  CAMERAS
+  CAMPING
+  FORMAL_WEAR
+  TOOLS
+  ELECTRONICS
+  SPORTS
+  MUSICAL_INSTRUMENTS
+  VEHICLES
+  PARTY_SUPPLIES
+  HOME_GARDEN
+  BOOKS
+  OTHER
+}
+
+enum Condition {
+  LIKE_NEW
+  EXCELLENT
+  GOOD
+  FAIR
+}
+
+model Availability {
+  id        String             @id @default(cuid())
+  itemId    String
+  date      DateTime           @db.Date
+  status    AvailabilityStatus @default(BLOCKED)
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, date])
+  @@index([itemId, date])
+  @@map("availability")
+}
+
+enum AvailabilityStatus {
+  BLOCKED
+  BOOKED
+  PENDING
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  bookingNumber   String        @unique @default(cuid())
+  startDate       DateTime      @db.Date
+  endDate         DateTime      @db.Date
+  totalDays       Int
+  rentalPrice     Float
+  depositAmount   Float
+  serviceFee      Float
+  totalAmount     Float
+  status          BookingStatus @default(PENDING)
+
+  stripePaymentIntentId String?  @unique
+  stripeDepositHoldId   String?
+
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  paidAt          DateTime?
+  pickedUpAt      DateTime?
+  returnedAt      DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+
+  cancellationReason String?
+  ownerNote          String?  @db.Text
+  renterNote         String?  @db.Text
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  renterId  String
+  renter    User     @relation("RenterBookings", fields: [renterId], references: [id])
+  ownerId   String
+  owner     User     @relation("OwnerBookings", fields: [ownerId], references: [id])
+  review    Review?
+  damageReport DamageReport?
+
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([itemId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  PAID
+  ACTIVE
+  RETURNED
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+model Review {
+  id        String     @id @default(cuid())
+  rating    Int
+  comment   String     @db.Text
+  type      ReviewType
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  bookingId String     @unique
+  booking   Booking    @relation(fields: [bookingId], references: [id])
+  authorId  String
+  author    User       @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId  String
+  target    User       @relation("ReviewTarget", fields: [targetId], references: [id])
+  itemId    String
+  item      Item       @relation(fields: [itemId], references: [id])
+
+  @@index([targetId])
+  @@index([itemId])
+  @@map("reviews")
+}
+
+enum ReviewType {
+  RENTER_TO_OWNER
+  OWNER_TO_RENTER
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  itemId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  content        String   @db.Text
+  isSystemMsg    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User     @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model DamageReport {
+  id          String             @id @default(cuid())
+  description String             @db.Text
+  images      String[]
+  status      DamageReportStatus @default(OPEN)
+  resolution  String?            @db.Text
+  claimAmount Float?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  bookingId  String  @unique
+  booking    Booking @relation(fields: [bookingId], references: [id])
+  itemId     String
+  item       Item    @relation(fields: [itemId], references: [id])
+  reporterId String
+  reporter   User    @relation(fields: [reporterId], references: [id])
+
+  @@map("damage_reports")
+}
+
+enum DamageReportStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_REFUND
+  RESOLVED_NO_REFUND
+  ESCALATED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  BOOKING_REQUEST
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  BOOKING_CANCELLED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+  ITEM_PICKED_UP
+  ITEM_RETURNED
+  REVIEW_RECEIVED
+  DAMAGE_REPORTED
+  DAMAGE_RESOLVED
+  MESSAGE_RECEIVED
+  PAYOUT_SENT
+  VERIFICATION_APPROVED
+}
