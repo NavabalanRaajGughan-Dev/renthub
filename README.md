@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RentHub
+
+> **Rent anything from your neighbors.**
+
+A modern peer-to-peer rental marketplace where people can list, discover, and rent items within their local community — from tools and equipment to cameras, furniture, and beyond.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| UI Components | shadcn/ui + Radix UI |
+| Database ORM | Prisma |
+| Backend-as-a-Service | Supabase |
+| Authentication | Better Auth |
+| Payments | Stripe |
+| Image Hosting | Cloudinary |
+| Maps | Leaflet + React Leaflet |
+| Email | Resend + React Email |
+| Forms | React Hook Form + Zod |
+| Charts | Recharts |
+| State Management | Zustand |
+| Notifications | Sonner |
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- pnpm
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/your-username/renthub.git
+cd renthub
+
+# Install dependencies
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env.local` file in the root of the project:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Database
+DATABASE_URL=
 
-## Learn More
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-To learn more about Next.js, take a look at the following resources:
+# Better Auth
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Stripe
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
-## Deploy on Vercel
+# Resend
+RESEND_API_KEY=
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Database Setup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# Push schema to your database
+pnpm prisma db push
+
+# Or run migrations
+pnpm prisma migrate dev
+```
+
+### Development
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## Project Structure
+
+```
+renthub/
+├── src/
+│   ├── app/               # Next.js App Router pages & layouts
+│   ├── components/
+│   │   └── ui/            # Reusable shadcn/ui components
+│   └── lib/               # Utility functions and shared logic
+├── prisma/                # Database schema and migrations
+└── public/                # Static assets
+```
+
+---
+
+## Features (Planned)
+
+- [ ] User authentication (sign up, login, OAuth)
+- [ ] Item listings with image upload
+- [ ] Location-based search with map view
+- [ ] Booking calendar & availability management
+- [ ] Stripe-powered payments & payouts
+- [ ] In-app messaging between renters and owners
+- [ ] Reviews and ratings
+- [ ] Owner and renter dashboards with analytics
+
+---
+
+## Scripts
+
+```bash
+pnpm dev       # Start development server
+pnpm build     # Build for production
+pnpm start     # Start production server
+pnpm lint      # Run ESLint
+```
+
+---
+
+## License
+
+MIT
