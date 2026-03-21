@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({
@@ -20,9 +21,9 @@ export default async function DashboardPage() {
         <p className="mt-4 text-neutral-400">
           You are logged in as {session.user.email}
         </p>
-        <p className="mt-2 text-sm text-neutral-600">
-          Day 2 — Authentication Working ✅
-        </p>
+        <div className="mt-8">
+          <LogoutButton />
+        </div>
       </div>
     </div>
   );
