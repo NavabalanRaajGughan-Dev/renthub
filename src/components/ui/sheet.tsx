@@ -58,6 +58,8 @@ function SheetContent({
   return (
     <SheetPortal>
       <SheetOverlay />
+      <SheetPrimitive.Title className="sr-only">Menu</SheetPrimitive.Title>
+      <SheetPrimitive.Description className="sr-only">Navigation menu</SheetPrimitive.Description>
       <SheetPrimitive.Content
         data-slot="sheet-content"
         data-side={side}
