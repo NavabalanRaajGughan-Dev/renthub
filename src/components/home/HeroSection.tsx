@@ -22,7 +22,7 @@ export function HeroSection() {
   return (
     <section className="relative flex min-h-[85vh] flex-col items-center justify-center px-4 text-center">
       {/* Background gradient */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-800/20 via-neutral-950 to-neutral-950" />
+      <div className="pointer-events-none absolute inset-0 bg-neutral-950" />
 
       <div className="relative z-10">
         {/* Badge */}
